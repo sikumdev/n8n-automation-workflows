@@ -245,7 +245,7 @@
                   {
                     "text": "📍 내 출발지 등록",
                     "additionalFields": {
-                      "url": "=https://t.me/sikum_first_bot/address?startapp={{ $('Telegram Trigger').item.json.message.chat.id }}"
+                      "url": "=https://t.me/YOUR_BOT/address?startapp={{ $('Telegram Trigger').item.json.message.chat.id }}"
                     }
                   },
                   {
@@ -263,7 +263,7 @@
                   {
                     "text": "📅 장소 추천 ",
                     "additionalFields": {
-                      "url": "=https://t.me/sikum_first_bot/callback?startapp={{ $('Telegram Trigger').item.json.message.chat.id }}"
+                      "url": "=https://t.me/YOUR_BOT/callback?startapp={{ $('Telegram Trigger').item.json.message.chat.id }}"
                     }
                   }
                 ]
