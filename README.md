@@ -1,7 +1,7 @@
 # n8n 업무 자동화 워크플로우
 
 > "고정된 순서로 결과가 재현돼야 하는 일은 **규칙**으로, 요약·판단이 필요한 일만 **AI**로."
-> n8n으로 만든 업무 자동화 워크플로우 5개입니다. 각 워크플로우마다 어디까지가 규칙 노드이고 어디서부터 AI 노드인지, 왜 그렇게 나눴는지를 적었습니다.
+> n8n으로 만든 업무 자동화 워크플로우 7개입니다. 각 워크플로우마다 어디까지가 규칙 노드이고 어디서부터 AI 노드인지, 왜 그렇게 나눴는지를 적었습니다.
 
 | # | 워크플로우 | 성격 | 노드 | 연동 |
 |---|---|---|---|---|
@@ -10,6 +10,8 @@
 | 03 | [자연어 → SQL 리포트 에이전트](#03-자연어--sql-리포트-에이전트) | AI + 안전 규칙 | 12 | PostgreSQL · OpenAI |
 | 04 | [강수량 알림 에이전트](#04-강수량-알림-에이전트) | AI + 도구 | 7 | Open-Meteo · Slack |
 | 05 | [하이브리드 RAG 에이전트](#05-하이브리드-rag-에이전트) | AI | 25 | OpenAI · In-memory Vector Store |
+| 06 | [날씨를 보고 일정을 잡는 캘린더 에이전트](#06-날씨를-보고-일정을-잡는-캘린더-에이전트) | 멀티 에이전트 | 14 | Google Calendar · Open-Meteo · OpenAI |
+| 07 | [IT 뉴스 3줄 요약 Slack 리포트](#07-it-뉴스-3줄-요약-slack-리포트) | 규칙 + AI(요약만) | 11 | Firecrawl · 네이버뉴스 · OpenAI · Slack |
 
 `workflows/*.json`은 n8n에서 **Import from File**로 바로 불러올 수 있습니다. credential과 외부 ID(Airtable base, Google 문서 ID, Slack 채널 ID, API 키)는 모두 placeholder로 바꿔 두었으니 import 후 본인 계정으로 연결하면 됩니다.
 
@@ -119,21 +121,63 @@ Chat Trigger
 
 ---
 
+## 06. 날씨를 보고 일정을 잡는 캘린더 에이전트
+
+**문제** — "다음 주 토요일에 야외 모임 잡아줘"는 두 가지 판단이 섞여 있다. 날짜 해석·날씨 확인과, 캘린더 조회·생성. v0에서 하나의 에이전트에 다 맡겼더니 날씨를 보지 않고 일정을 만들거나, 캘린더를 추측으로 답하는 일이 생겼다.
+
+**흐름**
+
+```
+Chat Trigger
+  └─ weather agent  ← 역할 1: 상대 날짜("이번 주 토요일")를 YYYY-MM-DD로 확정, Open-Meteo(hourly/daily)로 날씨 판단
+       │             캘린더는 절대 건드리지 않음
+       └─ Calender Agent  ← 역할 2: Google Calendar 도구(조회·생성·수정·삭제)로만 답변
+                           툴 호출 없이 추측 답변 금지, 실패 시 실패했다고 말함
+```
+
+**설계 포인트 — 역할 분리**
+- 에이전트를 둘로 나누고 각자 **하지 말 것**을 프롬프트에 명시했다: weather agent는 "일정 생성이나 캘린더 규칙은 절대 처리하지 않는다", Calender Agent는 "캘린더 요청은 추측하지 말고 반드시 툴 호출 결과로만 답한다".
+- 일정 충돌 검사는 Calender Agent가 `Get many events`로 먼저 조회한 뒤 생성하도록 순서를 고정.
+- 시간대는 두 에이전트 모두 `Asia/Seoul`로 고정 — 상대 날짜 해석이 어긋나는 가장 흔한 원인이었다.
+
+![06 canvas](docs/06_canvas.png)
+
+---
+
+## 07. IT 뉴스 3줄 요약 Slack 리포트
+
+**흐름**
+
+```
+Manual/Schedule Trigger
+  └─ Firecrawl로 네이버 IT 뉴스 목록 수집 → Split Out → 기사별 본문 요청 → HTML 본문 추출   ← 규칙
+       └─ 제목·링크·본문 정리 → Aggregate
+            └─ 뉴스요약기 (OpenAI, Structured Output: 3줄 요약)                          ← AI
+                 └─ Slack Block Kit 형식으로 변환 (Code) → Slack 전송                      ← 규칙
+```
+
+**규칙 / AI 경계** — 수집·추출·전송은 전부 규칙 노드. AI는 **본문을 3줄로 요약하는 한 단계**에만 쓰고, 출력은 Structured Output으로 받아 Slack 블록에 그대로 꽂히게 했다. 요약 품질이 흔들려도 전송 포맷은 깨지지 않는다.
+
+![07 canvas](docs/07_canvas.png)
+
+---
+
 ## 판단 기준 정리
 
 | 이런 일은 | 이렇게 | 예 |
 |---|---|---|
 | 같은 입력 → 같은 결과여야 함 | 규칙 노드 (If · Switch · Code) | 병가 중복 검사, 명령 분기, CRUD |
-| 요약·추천·분류처럼 판단이 필요함 | AI 노드 | 장소 추천, SQL 생성, 질문 유형 분류 |
-| AI 출력이 외부에 영향을 줌 (DB 실행, 메시지 발송) | AI 뒤에 **규칙 검문소** 추가 | DROP 필터, success 스위치 |
+| 요약·추천·분류처럼 판단이 필요함 | AI 노드 | 장소 추천, SQL 생성, 뉴스 요약, 질문 유형 분류 |
+| AI 출력이 외부에 영향을 줌 (DB 실행, 메시지 발송) | AI 뒤에 **규칙 검문소** 추가 | DROP 필터, success 스위치, Structured Output |
+| 판단 종류가 둘 이상 섞임 | 에이전트를 역할별로 분리, 각자 "하지 말 것" 명시 | 날씨 판단 ↔ 캘린더 편집 |
 | 결과를 사람이 확인해야 함 | 마지막에 알림 (Slack · Telegram) | 모든 워크플로우 |
 
 ## 사용
 
 1. n8n → Workflows → Import from File → `workflows/0X_*.json`
 2. 각 노드의 credential을 본인 계정으로 연결
-3. placeholder 교체: `AIRTABLE_BASE_ID` `AIRTABLE_TABLE_ID` `GOOGLE_FILE_ID` `SLACK_ID` `YOUR_API_KEY`
+3. placeholder 교체: `AIRTABLE_BASE_ID` `AIRTABLE_TABLE_ID` `GOOGLE_FILE_ID` `SLACK_ID` `YOUR_API_KEY` `user@example.com`(캘린더 ID)
 
 ## 환경
 
-n8n (self-hosted, Docker) · OpenAI · PostgreSQL · Airtable · Google Workspace · Slack · Telegram Bot API
+n8n (self-hosted, Docker) · OpenAI · PostgreSQL · Airtable · Google Calendar · Google Workspace · Slack · Telegram Bot API · Firecrawl · Open-Meteo
