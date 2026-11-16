@@ -1,0 +1,404 @@
+{
+  "name": "11-db-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -864,
+        -656
+      ],
+      "id": "3e2430b4-159c-488b-b3ba-ce2bac40caaf",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {
+        "tableName": "test_n8n_chat_histories"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        -432
+      ],
+      "id": "6a54dcb1-f3c0-42ac-9a6e-9253fb5ba986",
+      "name": "Postgres Chat Memory"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -688,
+        -432
+      ],
+      "id": "5b6ca24f-5fc8-45d6-ba47-5ead23b559eb",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "content": "## 채팅 시 입력한 채팅 텍스트가 바로 ai (두뇌)에 가는게 아니라 ai agent 가 chat_memory에서  \n## SELECT * FROM test_n8n_chat_histories  WHERE session_id = '챗 시작했을 때 생성된 session_id'\n## 을 실행 후 두뇌에 가서 텍스트를 넣고 생각 후  output 과 함께 그 데이터를  chat_memory에 저장",
+        "height": 880,
+        "width": 1808
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -960,
+        -1056
+      ],
+      "typeVersion": 1,
+      "id": "45d7dde5-a97d-45d3-b23c-47c6a108c8a0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cca6b17e-d98d-49a3-aefc-ea7ec0f9eb2f",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "DROP",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "2bea6e3b-fa44-4166-b5b6-a536e0296849",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "DELETE",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "3bf3b224-ca5e-456e-b7ec-5949aafba0e8",
+              "leftValue": "",
+              "rightValue": "INSERT INTO",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        -1040
+      ],
+      "id": "cbca2f48-1bd9-4852-9a1b-0b2c2ac16cde",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"SQL\": {\n      \"type\": \"string\",\n      \"description\": \"실행할 SQL 쿼리. success=false 인 경우 빈 문자열이어도 됨\"\n    },\n    \"success\": {\n      \"type\": \"boolean\",\n      \"description\": \"SQL 생성 및 실행 가능 여부\"\n    },\n    \"reason\": {\n      \"type\": \"string\",\n      \"description\": \"success=true 이면 'ok', success=false 이면 실패 사유\"\n    }\n  },\n  \"required\": [\"SQL\", \"success\", \"reason\"],\n  \"additionalProperties\": false,\n\n  \"allOf\": [\n    {\n      \"if\": {\n        \"properties\": {\n          \"success\": { \"const\": true }\n        }\n      },\n      \"then\": {\n        \"properties\": {\n          \"reason\": { \"const\": \"ok\" }\n        }\n      }\n    },\n    {\n      \"if\": {\n        \"properties\": {\n          \"success\": { \"const\": false }\n        }\n      },\n      \"then\": {\n        \"properties\": {\n          \"reason\": {\n            \"minLength\": 1,\n            \"description\": \"실패 원인을 자연어로 설명\"\n          }\n        }\n      }\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        -432
+      ],
+      "id": "1b898323-912b-4988-89d1-7f3da591cc96",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.success }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "aa274f5c-38ff-4701-bbf8-8845dbf05f66"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e196c7be-1eb8-4abd-b813-bcf8d3f67bff",
+                    "leftValue": "={{ $json.output.success }}",
+                    "rightValue": "false",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        -656
+      ],
+      "id": "d4374565-ca41-4810-a897-a7f2df0a95c2",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14f4df79-1878-4917-93f0-73f13b7c6439",
+              "name": "output.reason",
+              "value": "={{ $('SQL 생성 Agent').item.json.output.reason }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -512
+      ],
+      "id": "63ef84de-9fb6-4a9c-b749-c46cf17917d9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.output.SQL }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        48,
+        -752
+      ],
+      "id": "39e09b9c-0950-429d-8b2b-57228faa3963",
+      "name": "Execute a SQL query1"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "너의 이름은 'db assist'야\nDB에 있는 테이블들을 보고 사용자 요청에 맞게 적절한  postgres SQL 을 작성해줘\n바로 실행할 수 있도록 작성해줘, ``` 같은거 넣지 말고!\n\n데이터 수정/삭제/생성 행위는 어떠한 경우에도 엄격하게 금지되어 있어.이 경우 SQL 작성하지마. 넌 조회만 할 수 있는거야!\n\n현재 DB에는 customers 테이블과 sales 테이블이 있고 각 테이블의 스키마는 아래와 같아\n\ncustomers 테이블\n\n    Column     |         Type          | Collation | Nullable | Default \n---------------+-----------------------+-----------+----------+---------\n customer_id   | character varying(10) |           | not null | \n customer_name | character varying(50) |           | not null | \n customer_type | character varying(20) |           | not null | \n join_date     | date                  |           | not null | \nIndexes:\"customers_pkey\" PRIMARY KEY, btree (customer_id)\n\n- customer_type: 고객 등급(일반, 기업,VIP), join_date: 가입일이야\n\n\nsales 테이블\n    Column    |         Type          | Collation | Nullable | Default \n--------------+-----------------------+-----------+----------+---------\n id           | integer               |           | not null | \n order_date   | date                  |           | not null | \n customer_id  | character varying(10) |           | not null | \n product_id   | character varying(10) |           | not null | \n product_name | character varying(50) |           | not null | \n category     | character varying(20) |           | not null | \n quantity     | integer               |           | not null | \n unit_price   | integer               |           | not null | \n total_amount | integer               |           | not null | \n sales_rep    | character varying(30) |           | not null | \n region       | character varying(20) |           | not null | \nIndexes:\n    \"sales_pkey\" PRIMARY KEY, btree (id)\n\n- sales_rep: 담당 판매자야, region: 판매된 지역이야 \n\n참고로 위의 각 테이블은 customer_id로 join 할수도 있어\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -512,
+        -656
+      ],
+      "id": "7296f662-22d7-4611-8095-09ebe27d7a55",
+      "name": "SQL 생성 Agent"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -752
+      ],
+      "id": "71bf118c-4fa3-44ea-838a-4db8e2460ddc",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $('When chat message received').item.json.chatInput }}에 대한 DB SQL문은\n{{ $('SQL 생성 Agent').item.json.output.SQL }} 이고\n조회 결과가 아래와 같아 \n{{JSON.stringify( $json.data)}}"
+            },
+            {
+              "role": "system",
+              "content": "사용자가 보내준 정보를 가지고  사용자가 보기 편하게 마크다운 형식으로 깔끔한 레포트 하나 만들어줘 (단 너무 길지 않게 깔끔히 적어줘)"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        432,
+        -752
+      ],
+      "id": "14b2ab61-0b2a-4967-82f4-b5a71256728c",
+      "name": "SQL 결과 분석 및 레포트 생성"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "SQL 생성 Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "SQL 생성 Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SQL 생성 Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "SQL 생성 Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "SQL 생성 Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "SQL 결과 분석 및 레포트 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL 결과 분석 및 레포트 생성": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
