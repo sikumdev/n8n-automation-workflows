@@ -1,0 +1,1459 @@
+{
+  "name": "병가 프로젝트",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-command",
+        "options": {
+          "responseData": "workflow 시작!"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1168,
+        352
+      ],
+      "id": "195d4be4-b3ef-44d4-9bdd-dca9269e0b87",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e029858e-cfbb-4d2a-a923-bc59f30ad4ca",
+              "leftValue": "={{ $json.body.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -880,
+        352
+      ],
+      "id": "bf43d86a-de6d-49fc-b086-4e25d09c130c",
+      "name": "추가 정보 없음"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "flag"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        -144
+      ],
+      "id": "4abc0c4b-8e7c-4034-a07c-807bbad0810b",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "folderId": "1JVm2H9jrWXT54Bbac7K5KeadAtw52o-P",
+        "title": "={{ $json.id }}_{{ $json.name }}_병가신청서"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        528,
+        -304
+      ],
+      "id": "4816b072-b5fd-449d-a55f-78703a021314",
+      "name": "Create a document"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "=병가 신청서\n이름 : {{ $('Get row(s) in sheet').item.json.name }}\n시작 날짜: {{ $('Get row(s) in sheet').item.json.start_date }} \n종료 날짜: {{ $('Get row(s) in sheet').item.json.end_date }} \n사유: {{ $('Get row(s) in sheet').item.json.description }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -304
+      ],
+      "id": "bceef89c-c77b-4ed7-bb2e-5fdeccfafa5c",
+      "name": "Update a document"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "67d2b30b-696c-4171-9aa7-d08a44d6781d",
+              "leftValue": "={{ $json.flag }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        304,
+        -208
+      ],
+      "id": "dd602074-b399-48ed-a28a-9cdcb18b9894",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.id }}",
+        "simple": false
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -304
+      ],
+      "id": "7e87c779-6149-4a55-b7b5-964f16a091df",
+      "name": "Get a document"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "병가",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "flag": "=True",
+            "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "flag",
+              "displayName": "flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        -304
+      ],
+      "id": "44c7cb88-fe78-4f3b-a288-967112cd6d4e",
+      "name": "Update row in sheet"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "={{ $('Webhook').item.json.body.user_id }}",
+          "mode": "id"
+        },
+        "text": "업데이트 할 목록이 없습니다.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        528,
+        -112
+      ],
+      "id": "68846896-6de6-4151-9ea8-728a62281897",
+      "name": "no update"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "={{ $('Webhook').item.json.body.user_id }}",
+          "mode": "id"
+        },
+        "text": "=이름 : {{ $('Get row(s) in sheet').item.json.name }}\n시작 날짜 :{{ $('Get row(s) in sheet').item.json.start_date }}\n종료 날짜: {{ $('Get row(s) in sheet').item.json.end_date }}\n사유: {{ $('Get row(s) in sheet').item.json.description }}\n병가 신청 완료!",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1424,
+        -304
+      ],
+      "id": "1a14c952-b2e3-4b38-b6c3-9ba55014077a",
+      "name": "yes update"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -816,
+        -1296
+      ],
+      "id": "489ed985-b876-4e60-8035-631cf843204f",
+      "name": "Get row(s) in sheet3",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "병가",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "row_number": 0,
+            "name": "={{ $json.name }}",
+            "start_date": "={{ $json.start_date }}",
+            "end_date": "={{ $json.end_date }}",
+            "description": "={{ $json.description }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "flag",
+              "displayName": "flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -176,
+        -1200
+      ],
+      "id": "fade19b1-8e4e-4afb-a870-067d800aba1b",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "folderId": "1JVm2H9jrWXT54Bbac7K5KeadAtw52o-P",
+        "title": "={{ $json.id }}_{{ $json.name }}_병가신청서"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -1200
+      ],
+      "id": "00012794-1942-49d4-8550-720df07103fd",
+      "name": "Create a document4"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "=병가 신청서\n이름 : {{ $('Append row in sheet').item.json.name }}\n시작 날짜:{{ $('Append row in sheet').item.json.start_date }}\n종료 날짜: {{ $('Append row in sheet').item.json.end_date }}\n사유: {{ $('Append row in sheet').item.json.description }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -1200
+      ],
+      "id": "4ba846e6-67e5-4a31-9b7c-e2c5ea7049f3",
+      "name": "Update a document4"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.id }}",
+        "simple": false
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        272,
+        -1200
+      ],
+      "id": "4c8a86cc-2e0b-4fb2-85c9-4c40cef75133",
+      "name": "Get a document4"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "병가",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "flag": "=True",
+            "row_number": "={{ $('Append row in sheet').item.json.row_number }}",
+            "id": "={{ $('Append row in sheet').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "flag",
+              "displayName": "flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        -1200
+      ],
+      "id": "810315f9-7dcd-4846-9087-7a2ec5c64c04",
+      "name": "Update row in sheet4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get row(s) 결과 전체\nconst rows = $input.all();\n\n// id만 뽑아서 숫자로 변환\nconst ids = rows\n  .map(item => Number(item.json.id))\n  .filter(id => !isNaN(id));\n\n// 최대 id 계산\nconst maxId = ids.length ? Math.max(...ids) : 0;\n\n// 다음 id\nconst nextId = maxId + 1;\n\nconst text = $('Webhook').first().json.body.text || '';\nconst parts = text.trim().split(/\\s+/);\n\nconst name = parts[0] ?? '';\nconst start_date = parts[1] ?? '';\nconst end_date = parts[2] ?? '';\n\n// ✅ 추가: 중복 행의 row_number를 담을 변수\nlet matchedRowNumber = null;\n\n// ✅ 날짜 문자열(YYYY-MM-DD)을 안전하게 숫자(ms)로 변환\nconst toTime = (d) => {\n  if (!d) return NaN;\n  // 로컬 타임존 이슈 피하려고 UTC로 고정\n  const t = Date.parse(d + 'T00:00:00Z');\n  return Number.isNaN(t) ? NaN : t;\n};\n\nconst inStart = toTime(start_date);\nconst inEnd   = toTime(end_date);\n\n// 중복 여부 판단 (이름이 같고, 기간이 겹치면)\nconst exists = rows.some(item => {\n  const r = item.json;\n\n  const rName = (r.name ?? '');\n  if (rName !== name) return false;\n\n  const rStart = toTime(r.start_date ?? '');\n  const rEnd   = toTime(r.end_date ?? '');\n\n  // 날짜가 비정상이면 비교 제외(원하면 true로 처리도 가능)\n  if ([inStart, inEnd, rStart, rEnd].some(Number.isNaN)) return false;\n\n  // ✅ 기간 겹침(포함) 판정\n  const overlaps = (inStart <= rEnd) && (inEnd >= rStart);\n\n  if (overlaps) {\n    matchedRowNumber = r.row_number; // ✅ 겹친 행 row_number 저장\n    return true;\n  }\n  return false;\n});\n\nreturn [{\n  json: {\n    id: nextId,\n    name,\n    start_date,\n    end_date,\n    description: parts.slice(3).join(' ') ?? '',\n    flag: '',\n    exists,\n    matchedRowNumber, // exists=true면 숫자, 아니면 null\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        -1296
+      ],
+      "id": "0c6eaf12-fc37-4681-8a89-e4c7245d0d93",
+      "name": "입력 문자열 parsing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b7f7fe05-2f39-4a61-84d6-396a5fdeaf95",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": "=true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        -1296
+      ],
+      "id": "17686be4-7f66-4e76-8738-17941b093f00",
+      "name": "시트에 있는 병가 기간 check"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "SLACK_ID",
+          "mode": "id"
+        },
+        "text": "=이름:{{ $('Append row in sheet').item.json.name }}\n시작 날짜:{{ $('Append row in sheet').item.json.start_date }}\n종료 날짜:{{ $('Append row in sheet').item.json.end_date }}\n사유:{{ $('Append row in sheet').item.json.description }}\n병가 신청이 완료되었습니다.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        928,
+        -1200
+      ],
+      "id": "805e0e72-208f-4bc7-9f4a-1bee99342562",
+      "name": "병가 신청 완료"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "flag"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        -1424
+      ],
+      "id": "dbd05625-b79d-406b-ae95-acd9abb12f84",
+      "name": "Get row(s) in sheet1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b1c10a8e-e04b-4ecd-a3a5-6d04df1d223b",
+              "leftValue": "={{ $('Get row(s) in sheet1').item.json.flag }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -1424
+      ],
+      "id": "8f501894-1cf8-4df2-8389-b94be787443f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "folderId": "1JVm2H9jrWXT54Bbac7K5KeadAtw52o-P",
+        "title": "={{ $json.id }}_{{ $json.name }}_병가신청서"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -1600
+      ],
+      "id": "3210c374-b7bc-47ff-8549-be493aaebb3d",
+      "name": "Create a document1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "=병가 신청서\n이름 : {{ $('Get row(s) in sheet1').item.json.name }}\n시작 날짜: {{ $('Get row(s) in sheet1').item.json.start_date }} \n종료 날짜: {{ $('Get row(s) in sheet1').item.json.end_date }} \n사유: {{ $('Get row(s) in sheet1').item.json.description }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -1600
+      ],
+      "id": "ae15f8fd-ebbf-47b3-95d7-2ddf18a95702",
+      "name": "Update a document1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.id }}",
+        "simple": false
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -1600
+      ],
+      "id": "4a099d72-3fc3-48aa-bace-dc0173ac0127",
+      "name": "Get a document1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "병가",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "flag": "=True",
+            "row_number": "={{ $('Get row(s) in sheet1').item.json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "flag",
+              "displayName": "flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -1600
+      ],
+      "id": "a0f074ab-69ac-44bd-bfee-09ee5976364a",
+      "name": "Update row in sheet1"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "={{ $('Webhook').first().json.body.user_id }}",
+          "mode": "id"
+        },
+        "text": "신청서 작성 갱신 완료 ( 업데이트 목록이 없습니다)",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        448,
+        -1424
+      ],
+      "id": "646cf141-e2c5-49db-8856-72c88259cd63",
+      "name": "no update1"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "={{ $('Webhook').first().json.body.user_id }}",
+          "mode": "id"
+        },
+        "text": "=신청서 작성 완료가 안된 건 (업데이트)\n이름 : {{ $('Get row(s) in sheet1').item.json.name }}\n시작 날짜 :{{ $('Get row(s) in sheet1').item.json.start_date }}\n종료 날짜: {{ $('Get row(s) in sheet1').item.json.end_date }}\n사유: {{ $('Get row(s) in sheet1').item.json.description }}\n병가 신청서 갱신 완료 상태 \n\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1344,
+        -1600
+      ],
+      "id": "55fca8b0-d01d-4e28-b3ad-61e732cd512f",
+      "name": "yes update1"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "={{ $('Webhook').first().json.body.user_id }}",
+          "mode": "id"
+        },
+        "text": "=이전 병가 신청 기간과 겹칩니다. 병가 시트 {{ $('입력 문자열 parsing').item.json.matchedRowNumber }}헹을 참고하여 주십시오. 추가로 업데이트할 목록이 있는지 확인중입니다.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        -192,
+        -1392
+      ],
+      "id": "d159575c-336d-49c6-94d0-32dae202b2bc",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "병가",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -656,
+        368
+      ],
+      "id": "4c0796dc-65b9-4c04-bb00-7ea85937ec6f",
+      "name": "Get row(s) in sheet4",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "body.text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        368
+      ],
+      "id": "327db042-bbb2-4b9f-9c28-3d7ed7c739ae",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_FILE_ID",
+          "mode": "list",
+          "cachedResultName": "team-sheet",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "병가",
+          "cachedResultUrl": "https://docs.google.com/.../d/GOOGLE_FILE_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "flag",
+              "displayName": "flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -256,
+        368
+      ],
+      "id": "bffbf275-a423-4688-a936-08489bc3f1c0",
+      "name": "Append row in sheet1",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "추가 정보 없음",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "추가 정보 없음": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a document": {
+      "main": [
+        [
+          {
+            "node": "Get a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "no update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "yes update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "입력 문자열 parsing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Create a document4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a document4": {
+      "main": [
+        [
+          {
+            "node": "Get a document4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document4": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document4": {
+      "main": [
+        [
+          {
+            "node": "Update a document4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet4": {
+      "main": [
+        [
+          {
+            "node": "병가 신청 완료",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "입력 문자열 parsing": {
+      "main": [
+        [
+          {
+            "node": "시트에 있는 병가 기간 check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "시트에 있는 병가 기간 check": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Create a document1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "no update1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a document1": {
+      "main": [
+        [
+          {
+            "node": "Get a document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document1": {
+      "main": [
+        [
+          {
+            "node": "Update a document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "yes update1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet4": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
