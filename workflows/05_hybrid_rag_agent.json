@@ -1,0 +1,884 @@
+{
+  "name": "14-hybrid-rag.v1",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -576,
+        -528
+      ],
+      "id": "45cbeb21-aaa1-43ec-a1b5-9a408e8788d1",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {
+        "content": "## Hybrid -RAG\n",
+        "height": 1008,
+        "width": 1744
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2864,
+        -1392
+      ],
+      "typeVersion": 1,
+      "id": "8a7d4d2d-450f-4480-a0c2-0863845606fe",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=TODAY : {{$now}}\n\n# 역할 (Role)\n너는 2026년 경제 및 IT 전문 전략 분석가이다. 사용자의 입력을 분석하여 내부 PDF 기반 RAG(Economy, IT)와 외부 실시간 검색(Web)을 조합하는 최적의 실행 계획을 수립한다.\n\n# 데이터 소스 지식 (Knowledge Base Context)\n1. **Economy RAG (route: \"economy\")**: \n   - [2026-경제전망.pdf] 내용 기반. \n   - 2026년 국내외 경제 성장률, 고용/물가 전망, 주요 산업(반도체, 자동차 등)별 경기 전망 데이터 보유.\n2. **IT RAG (route: \"it\")**: \n   - [2026-tech-trend.pdf] 내용 기반. \n   - 2026년 지능형 반도체, AI 트렌드, 자율주행, 로봇, 퀀텀 기술 등 미래 기술 로드맵 데이터 보유.\n3. **Web Search (route: \"web\")**: \n   - 위 PDF에 포함되지 않은 '실시간 외교 뉴스', '정치적 결정', '법안 통과', '과거/미래 특정 시점' 데이터 검색용.\n\n# 계획 수립 원칙 (Planning Rules)\n- **우선순위**: 2026년 전망 수치나 기술 트렌드 질문은 반드시 해당 RAG route를 1순위로 배정한다.\n- **상호보완**: \"반도체(IT)가 경제(Economy)에 미치는 영향\"과 같은 질문은 두 RAG를 모두 사용하도록 분리한다.\n- **Web 강제**: 질문에 '관세', '전쟁', '정책 변화', '현재 시점 뉴스'가 포함되면 반드시 'web' route를 추가한다.\n- **쿼리 최적화**: 'query' 필드에는 PDF 색인이나 웹 검색에 최적화된 키워드 중심의 짧은 문장을 작성한다.\n\n# 출력 형식\n반드시 지정된 JSON 구조로만 답변하라."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -368,
+        -528
+      ],
+      "id": "54d4f0c2-1fec-4749-b6b2-0368f52435de",
+      "name": "사용자 입력 -> 판단"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        -320
+      ],
+      "id": "3a13e28c-d0ac-490a-b9d9-ab52afcc6c73",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"user_intent\": \"2026년 반도체 시장 전망과 글로벌 관세 정책의 영향 분석\",\n  \"search_plan\": [\n    {\n      \"route\": \"economy\",\n      \"query\": \"2026년 한국 경제 산업별 전망 및 반도체 수출 지표\",\n      \"reason\": \"내부 경제 전망 PDF에 수록된 거시 경제 지표 및 산업별 성장률 확인\"\n    },\n    {\n      \"route\": \"it\",\n      \"query\": \"2026년 AI 반도체 기술 트렌드 및 지능형 반도체 로드맵\",\n      \"reason\": \"내부 테크 트렌드 PDF에 수록된 차세대 반도체 및 AI 기술 동향 확인\"\n    },\n    {\n      \"route\": \"web\",\n      \"query\": \"2026년 미국 및 주요국 반도체 추가 관세 및 무역 규제 현황\",\n      \"reason\": \"RAG(PDF) 자료에는 없는 실시간 정치/외교적 규제 변수 확보\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        -320
+      ],
+      "id": "56f6907f-f0ec-434c-93a9-b23437f62df1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.search_plan",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -528
+      ],
+      "id": "cc5d068f-6b44-4e45-98a1-77a71d82a548",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "economy",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f2b160e2-057a-4603-ae6e-911da36893f6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "economy"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c0aeb111-49c8-4468-87dd-d65502ae7957",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "it",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "it"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "78532373-69bc-427d-8e6a-91c5885c460e",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "web",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "web"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -528
+      ],
+      "id": "02c96dfb-eb5b-40e8-9b55-9e26cf801163",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d81a3593-42f1-413a-b7b7-5af82c8b29d7",
+              "leftValue": "={{ $node[\"Filter\"].json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1360,
+        -656
+      ],
+      "id": "18018db9-a2f6-4519-a997-52089de82645",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dec995d0-cb63-4f17-b12b-c379c1e62bed",
+              "leftValue": "={{ $node[\"Filter1\"].json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1376,
+        -416
+      ],
+      "id": "ad76d8e4-2eeb-4c05-9681-c58ee8a22a59",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1904,
+        -688
+      ],
+      "id": "0d89db80-a2db-479a-b3c5-649238f85f6a",
+      "name": "Message a model"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1904,
+        -480
+      ],
+      "id": "e1ee6bd1-b7d3-45f7-83ba-59e238eac142",
+      "name": "Message a model1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1952,
+        -208
+      ],
+      "id": "8912d343-684a-4f7a-ab01-96dbeea6efef",
+      "name": "Message a model2"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -672
+      ],
+      "id": "f39cd24e-20a2-4752-aba8-f96a9c004960",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        -464
+      ],
+      "id": "56da1327-5174-4db4-a6ea-2771f04eb541",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        -144
+      ],
+      "id": "0931941e-701a-429d-aae0-efbf1ad4c745",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2400,
+        -496
+      ],
+      "id": "f560c803-d33d-4825-8fad-b8759645c5f1",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2608,
+        -496
+      ],
+      "id": "dc84151b-71de-4c06-81d4-3d6925a0ec79",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        -544
+      ],
+      "id": "530d230b-6798-4c82-810f-204beb928134",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cec632c5-9c4f-4140-9bcd-93ec7642b5e3",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 0.75,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        864,
+        -752
+      ],
+      "id": "edcdc288-a7bc-4845-8128-1ec65fe3ace0",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cec632c5-9c4f-4140-9bcd-93ec7642b5e3",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 0.75,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        880,
+        -400
+      ],
+      "id": "4c07c013-9f32-4779-aaea-763502e76c7d",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        432
+      ],
+      "id": "cb21af8e-dc8e-4cd7-8349-47a24b9c99ff",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "pinecone-test",
+          "mode": "list",
+          "cachedResultName": "pinecone-test"
+        },
+        "prompt": "={{ $('Split Out').item.json.query }}",
+        "options": {
+          "pineconeNamespace": "economy"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        -752
+      ],
+      "id": "cd601271-660f-45c7-8c62-851133183d97",
+      "name": "Economy RAG"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "pinecone-test",
+          "mode": "list",
+          "cachedResultName": "pinecone-test"
+        },
+        "prompt": "={{ $('Split Out').item.json.query }}",
+        "options": {
+          "pineconeNamespace": "IT"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        -400
+      ],
+      "id": "95bb4d21-04f2-4ff1-a466-931ca5e6c8c0",
+      "name": "IT RAG"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.query }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        528,
+        -144
+      ],
+      "id": "c922355d-8296-4706-a707-0bc4535c9250",
+      "name": "Web search"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1184,
+        -272
+      ],
+      "id": "be0323b9-7393-4499-96f5-9b929b1cfef4",
+      "name": "Web search_accurate",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "사용자 입력 -> 판단",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "사용자 입력 -> 판단",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "사용자 입력 -> 판단",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "사용자 입력 -> 판단": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Economy RAG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IT RAG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Web search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Web search_accurate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Web search_accurate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Economy RAG",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "IT RAG",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "사용자 입력 -> 판단",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Economy RAG": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IT RAG": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web search": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web search_accurate": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
