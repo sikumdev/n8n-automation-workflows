@@ -5,19 +5,23 @@
 
 | # | 워크플로우 | 성격 | 노드 | 연동 |
 |---|---|---|---|---|
-| 01 | [우리 어디서 봐? — 모임 장소 추천 봇](#01-우리-어디서-봐--모임-장소-추천-텔레그램-봇) | 규칙 + AI | 42 | Telegram · Airtable · OpenAI · SerpApi · OpenWeatherMap |
+| 01 | [우리 어디서 봐? — 모임 장소 추천 봇](#01-우리-어디서-봐--모임-장소-추천-텔레그램-봇) · [저장소 ↗](https://github.com/sikumdev/n8n-meetup-place-bot) | 규칙 + AI | 42 | Telegram · Airtable · OpenAI · SerpApi · OpenWeatherMap |
 | 02 | [병가 신청 자동화](#02-병가-신청-자동화) | **규칙만** | 31 | Webhook · Google Sheets · Google Docs · Slack |
-| 03 | [자연어 → SQL 리포트 에이전트](#03-자연어--sql-리포트-에이전트) | AI + 안전 규칙 | 12 | PostgreSQL · OpenAI |
+| 03 | [자연어 → SQL 리포트 에이전트](#03-자연어--sql-리포트-에이전트) · [저장소 ↗](https://github.com/sikumdev/n8n-nl-to-sql-report-agent) | AI + 안전 규칙 | 12 | PostgreSQL · OpenAI |
 | 04 | [강수량 알림 에이전트](#04-강수량-알림-에이전트) | AI + 도구 | 7 | Open-Meteo · Slack |
 | 05 | [하이브리드 RAG 에이전트](#05-하이브리드-rag-에이전트) | AI | 25 | OpenAI · In-memory Vector Store |
-| 06 | [날씨를 보고 일정을 잡는 캘린더 에이전트](#06-날씨를-보고-일정을-잡는-캘린더-에이전트) | 멀티 에이전트 | 14 | Google Calendar · Open-Meteo · OpenAI |
-| 07 | [IT 뉴스 3줄 요약 Slack 리포트](#07-it-뉴스-3줄-요약-slack-리포트) | 규칙 + AI(요약만) | 11 | Firecrawl · 네이버뉴스 · OpenAI · Slack |
+| 06 | [날씨를 보고 일정을 잡는 캘린더 에이전트](#06-날씨를-보고-일정을-잡는-캘린더-에이전트) · [저장소 ↗](https://github.com/sikumdev/n8n-weather-calendar-agent) | 멀티 에이전트 | 14 | Google Calendar · Open-Meteo · OpenAI |
+| 07 | [IT 뉴스 3줄 요약 Slack 리포트](#07-it-뉴스-3줄-요약-slack-리포트) · [저장소 ↗](https://github.com/sikumdev/n8n-it-news-slack-digest) | 규칙 + AI(요약만) | 11 | Firecrawl · 네이버뉴스 · OpenAI · Slack |
+
+01 · 03 · 06 · 07은 각자 별도 저장소로도 나눠 두었습니다(표의 **저장소 ↗**). 이 저장소는 전체 목차와 규칙/AI 판단 기준을 모아 보는 곳입니다.
 
 `workflows/*.json`은 n8n에서 **Import from File**로 바로 불러올 수 있습니다. credential과 외부 ID(Airtable base, Google 문서 ID, Slack 채널 ID, API 키)는 모두 placeholder로 바꿔 두었으니 import 후 본인 계정으로 연결하면 됩니다.
 
 ---
 
 ## 01. 우리 어디서 봐? — 모임 장소 추천 텔레그램 봇
+
+> 📁 별도 저장소: [sikumdev/n8n-meetup-place-bot](https://github.com/sikumdev/n8n-meetup-place-bot)
 
 **문제** — 여럿이 만날 때 "어디서 볼까"는 항상 가장 멀리 사는 사람이 손해를 본다. 핫플레이스가 아니라 **모두의 이동 시간이 비슷한 곳**을 찾고 싶었다.
 
@@ -75,6 +79,8 @@ Webhook (신청 폼)
 
 ## 03. 자연어 → SQL 리포트 에이전트
 
+> 📁 별도 저장소: [sikumdev/n8n-nl-to-sql-report-agent](https://github.com/sikumdev/n8n-nl-to-sql-report-agent)
+
 **문제** — "지난달 고객 유형별 매출 보여줘" 같은 질문에 매번 SQL을 써주는 일을 줄이고 싶었다. 단, DB를 건드리는 사고는 절대 없어야 한다.
 
 **흐름**
@@ -123,6 +129,8 @@ Chat Trigger
 
 ## 06. 날씨를 보고 일정을 잡는 캘린더 에이전트
 
+> 📁 별도 저장소: [sikumdev/n8n-weather-calendar-agent](https://github.com/sikumdev/n8n-weather-calendar-agent)
+
 **문제** — "다음 주 토요일에 야외 모임 잡아줘"는 두 가지 판단이 섞여 있다. 날짜 해석·날씨 확인과, 캘린더 조회·생성. v0에서 하나의 에이전트에 다 맡겼더니 날씨를 보지 않고 일정을 만들거나, 캘린더를 추측으로 답하는 일이 생겼다.
 
 **흐름**
@@ -145,6 +153,8 @@ Chat Trigger
 ---
 
 ## 07. IT 뉴스 3줄 요약 Slack 리포트
+
+> 📁 별도 저장소: [sikumdev/n8n-it-news-slack-digest](https://github.com/sikumdev/n8n-it-news-slack-digest)
 
 **흐름**
 
